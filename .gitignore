@@ -1,0 +1,118 @@
+# Environment and Secrets
+.env
+*.env
+.aider*
+*.secret
+secrets.yaml
+config.local.yaml
+
+# Vendor Submodules Build Artifacts
+vendor/repo-visualizer/dist/
+vendor/repo-visualizer/node_modules/
+vendor/*/__pycache__/
+vendor/*/*.egg-info/
+vendor/*/build/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+*.sublime-*
+
+# Logs and Databases
+*.log
+*.sqlite3
+*.db
+*.jsonl
+*.large
+*.data
+*.csv
+
+# Project Data
+data/
+temp/
+cache/
+.kinos-cache/
+.kinos-state
+.kinos-metrics
+.kinos-config
+
+# Frontend
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup Files
+*.bak
+*.gho
+*.ori
+*.orig
+*.tmp
+*.tmp
+
+*.jsonl
+
+# Specific to KinOS
+config/secrets.yaml
+config.local.yaml
+local_settings.py
+
+# KinOS History and Team Files
+**/team_*/history/**
+**/team_*/logs/**
+**/history/**
+**/logs/**
+
+# Generated Documentation
+docs/_build/
+docs/generated/
+
+# Temporary and Configuration Files
+*.bak
+*.tmp
+cache/
+temp/

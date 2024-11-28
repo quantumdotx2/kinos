@@ -32,6 +32,15 @@ if errorlevel 1 (
     goto :error
 )
 
+:: Install packaging module first
+echo Installing packaging module...
+python -m pip install packaging --user
+if errorlevel 1 (
+    echo Error: Failed to install packaging module
+    set "ERROR_OCCURRED=1"
+    goto :error
+)
+
 :: Get current Python version
 set MIN_PYTHON_VERSION=3.9.0
 echo Checking Python version...

@@ -447,6 +447,18 @@ In this context, you are an assistant who summarizes project actions in a concis
                 max_tokens=150
             )
             
+            summary = response.choices[0].message.content.strip()
+            
+            # Add Twitter posting
+            try:
+                from managers.socials_manager import SocialsManager
+                socials = SocialsManager(model=self.model)
+                socials.post_to_twitter(summary)
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not post to Twitter: {str(e)}")
+                
+            return summary
+            
         except Exception as e:
             self.logger.error(f"Failed to generate summary: {str(e)}")
             # Return a basic fallback summary

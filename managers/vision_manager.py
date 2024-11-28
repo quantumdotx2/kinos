@@ -38,10 +38,70 @@ class VisionManager:
             dist_path = os.path.join(repo_visualizer_path, 'dist', 'index.js')
 
             if not os.path.exists(dist_path):
-                raise FileNotFoundError(
-                    f"repo-visualizer build not found at {dist_path}. "
-                    "Please build repo-visualizer first."
-                )
+                self.logger.info("🔨 repo-visualizer needs to be built. Attempting build...")
+                
+                try:
+                    # Install dependencies first
+                    process = await asyncio.create_subprocess_exec(
+                        'npm', 'install',
+                        cwd=repo_visualizer_path,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE
+                    )
+                    stdout, stderr = await process.communicate()
+                    
+                    if process.returncode != 0:
+                        self.logger.error("❌ npm install failed. Trying with --force...")
+                        # Clear npm cache and retry with force
+                        await asyncio.create_subprocess_exec('npm', 'cache', 'clean', '--force')
+                        process = await asyncio.create_subprocess_exec(
+                            'npm', 'install', '--force',
+                            cwd=repo_visualizer_path,
+                            stdout=asyncio.subprocess.PIPE,
+                            stderr=asyncio.subprocess.PIPE
+                        )
+                        stdout, stderr = await process.communicate()
+                        
+                        if process.returncode != 0:
+                            raise RuntimeError(
+                                f"Failed to install dependencies:\n"
+                                f"stdout: {stdout.decode()}\n"
+                                f"stderr: {stderr.decode()}"
+                            )
+                    
+                    # Run build
+                    self.logger.info("📦 Building repo-visualizer...")
+                    process = await asyncio.create_subprocess_exec(
+                        'npm', 'run', 'build',
+                        cwd=repo_visualizer_path,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE
+                    )
+                    stdout, stderr = await process.communicate()
+                    
+                    if process.returncode != 0:
+                        raise RuntimeError(
+                            f"Build failed:\n"
+                            f"stdout: {stdout.decode()}\n"
+                            f"stderr: {stderr.decode()}\n"
+                            f"\nTry these steps manually:\n"
+                            f"1. cd {repo_visualizer_path}\n"
+                            f"2. npm cache clean --force\n"
+                            f"3. rm -rf node_modules package-lock.json\n"
+                            f"4. npm install --force\n"
+                            f"5. npm run build"
+                        )
+                        
+                    self.logger.success("✨ repo-visualizer built successfully")
+                    
+                except Exception as e:
+                    raise RuntimeError(
+                        f"Failed to build repo-visualizer. Please build manually:\n"
+                        f"1. cd {repo_visualizer_path}\n"
+                        f"2. npm install\n"
+                        f"3. npm run build\n"
+                        f"\nError: {str(e)}"
+                    )
 
             # Run visualization with minimal options
             self.logger.debug("🎨 Generating repository visualization...")

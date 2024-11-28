@@ -447,39 +447,6 @@ In this context, you are an assistant who summarizes project actions in a concis
                 max_tokens=150
             )
             
-            summary = response.choices[0].message.content.strip()
-            
-            # MOVED TELEGRAM LOGIC HERE - Direct implementation
-            self.logger.debug(f"🔄 Attempting to post directly to Telegram: {summary}")
-            
-            telegram_api_key = os.getenv('TELEGRAM_API_KEY')
-            if not telegram_api_key:
-                self.logger.warning("⚠️ Telegram API key not found, skipping post")
-                return summary
-
-            try:
-                url = f"https://api.telegram.org/bot{telegram_api_key}/sendMessage"
-                data = {
-                    "chat_id": "-1001699255893",  # Hardcoded channel ID
-                    "text": summary,
-                    "parse_mode": "Markdown"
-                }
-                
-                self.logger.debug(f"📡 Sending to Telegram URL: {url}")
-                self.logger.debug(f"📝 With data: {data}")
-                
-                response = requests.post(url, json=data)
-                
-                if response.status_code == 200:
-                    self.logger.success("✨ Posted directly to Telegram")
-                else:
-                    self.logger.error(f"❌ Telegram post failed: {response.text}")
-                    
-            except Exception as e:
-                self.logger.error(f"❌ Direct Telegram post error: {str(e)}")
-            
-            return summary
-            
         except Exception as e:
             self.logger.error(f"Failed to generate summary: {str(e)}")
             # Return a basic fallback summary

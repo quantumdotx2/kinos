@@ -41,7 +41,7 @@ if ! $(python3 -c 'from utils.fs_utils import FSUtils; print(FSUtils.get_python_
 fi
 
 # Verify Python version
-MIN_PYTHON_VERSION="3.9.0"
+MIN_PYTHON_VERSION="3.12.0"
 PYTHON_CMD=$(python3 -c 'from utils.fs_utils import FSUtils; print(FSUtils.get_python_command())')
 CURRENT_VERSION=$($PYTHON_CMD -c "import sys; print('.'.join(map(str, sys.version_info[:3])))")
 
@@ -62,12 +62,6 @@ fi
 
 echo "🚀 Starting installation..."
 
-# Update submodules
-git submodule update --init --recursive
-if [ $? -ne 0 ]; then
-    echo "Error: Submodule update failed"
-    exit 1
-fi
 
 # Install/Update Python dependencies
 $(python3 -c 'from utils.fs_utils import FSUtils; print(FSUtils.get_python_command())') -m pip install -r requirements.txt --user

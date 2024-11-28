@@ -42,7 +42,7 @@ if errorlevel 1 (
 )
 
 :: Get current Python version
-set MIN_PYTHON_VERSION=3.9.0
+set MIN_PYTHON_VERSION=3.12.0
 echo Checking Python version...
 for /f %%i in ('python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"') do set CURRENT_VERSION=%%i
 echo Found Python version: %CURRENT_VERSION%
@@ -105,12 +105,6 @@ if errorlevel 1 (
     exit /b 1
 )
 
-:: Update submodules
-git submodule update --init --recursive
-if errorlevel 1 (
-    echo Error: Submodule update failed
-    exit /b 1
-)
 
 :: Install/Update Python dependencies
 echo Installing Python dependencies...

@@ -85,7 +85,7 @@ You can also open an interactive session with `kin interactive` and ask it quest
 
 2. Clone the Repository:
    ```bash
-   git clone --recursive https://github.com/DigitalKin-ai/kinos.git
+   git clone https://github.com/yourusername/kinos.git
    cd kinos
    ```
 

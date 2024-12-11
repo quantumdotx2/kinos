@@ -74,7 +74,7 @@ def main():
             
     elif command == "run":
         if len(sys.argv) < 3:
-            print("Usage: kin run <agents|aider|map> [options]")
+            print("Usage: kin run <agents|aider|map|gui> [options]")
             print("Options:")
             print("  --generate    Generate agents if missing")
             print("  --verbose     Show detailed debug information")

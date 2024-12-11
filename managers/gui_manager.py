@@ -27,25 +27,54 @@ class GUIManager:
         try:
             self.logger.info("Starting KinOS GUI...")
             
-            # Create Qt application
-            self.app = QApplication([])
+            # Check if we're already running
+            if self.app is not None:
+                self.logger.warning("GUI already running")
+                return
+                
+            # Create Qt application with proper args
+            import sys
+            self.app = QApplication(sys.argv)
             self.logger.info("Created QApplication")
             
-            self.window = MainWindow(self)
-            self.logger.info("Created MainWindow")
+            # Set application name and organization
+            self.app.setApplicationName("KinOS")
+            self.app.setOrganizationName("KinOS")
+            self.logger.info("Set application info")
             
-            self.window.show()
-            self.logger.info("Window shown")
+            # Create main window
+            try:
+                self.window = MainWindow(self)
+                self.logger.info("Created MainWindow")
+            except Exception as e:
+                self.logger.error(f"Failed to create main window: {str(e)}")
+                raise
             
-            # Start event loop
-            import qasync
-            loop = qasync.QEventLoop(self.app)
-            asyncio.set_event_loop(loop)
-            self.logger.info("Event loop created")
+            # Show window
+            try:
+                self.window.show()
+                self.logger.info("Window shown")
+            except Exception as e:
+                self.logger.error(f"Failed to show window: {str(e)}")
+                raise
             
-            # Run periodic updates
-            self._start_update_timers()
-            self.logger.info("Started update timers")
+            # Initialize event loop
+            try:
+                import qasync
+                loop = qasync.QEventLoop(self.app)
+                asyncio.set_event_loop(loop)
+                self.logger.info("Event loop created")
+            except Exception as e:
+                self.logger.error(f"Failed to create event loop: {str(e)}")
+                raise
+            
+            # Start update timers
+            try:
+                self._start_update_timers()
+                self.logger.info("Started update timers")
+            except Exception as e:
+                self.logger.error(f"Failed to start timers: {str(e)}")
+                raise
             
             # Run event loop
             self.logger.info("Starting event loop...")
@@ -53,7 +82,13 @@ class GUIManager:
             
         except Exception as e:
             self.logger.error(f"GUI startup failed: {str(e)}")
+            import traceback
+            self.logger.error(f"Traceback:\n{traceback.format_exc()}")
             raise
+        finally:
+            # Cleanup
+            if self.app:
+                self.app.quit()
 
     def _start_update_timers(self):
         """Start timers for periodic updates."""
@@ -72,6 +107,22 @@ class GUIManager:
         self.activity_timer.timeout.connect(self.window._update_activity_feed)
         self.activity_timer.timeout.connect(self.window._update_commit_history)
         self.activity_timer.start(2000)
+
+    def cleanup(self):
+        """Clean up GUI resources."""
+        try:
+            if hasattr(self, 'agent_timer'):
+                self.agent_timer.stop()
+            if hasattr(self, 'diagram_timer'):
+                self.diagram_timer.stop()
+            if hasattr(self, 'activity_timer'):
+                self.activity_timer.stop()
+            if self.window:
+                self.window.close()
+            if self.app:
+                self.app.quit()
+        except Exception as e:
+            self.logger.error(f"Cleanup failed: {str(e)}")
 
     def generate_agent_avatar(self, agent_name):
         """Generate a unique avatar for an agent."""

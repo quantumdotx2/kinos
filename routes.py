@@ -155,13 +155,52 @@ def main():
             # Create and initialize GUI manager
             async def init_and_run_gui():
                 try:
+                    # First check if PyQt6 is installed
+                    try:
+                        from PyQt6.QtWidgets import QApplication
+                        from PyQt6.QtCore import Qt
+                    except ImportError:
+                        Logger(model=model).error("PyQt6 not installed. Please run: pip install PyQt6 qasync pillow")
+                        return
+
+                    # Create and start GUI manager
                     manager = GUIManager(model=model)
-                    await manager.start_gui()
+                    Logger(model=model).info("Starting GUI manager...")
+                    
+                    # Run the GUI and wait for it to complete
+                    try:
+                        await manager.start_gui()
+                    except KeyboardInterrupt:
+                        Logger(model=model).info("GUI stopped by user")
+                    except Exception as e:
+                        Logger(model=model).error(f"GUI failed: {str(e)}")
+                        raise
+                    finally:
+                        # Ensure cleanup happens
+                        manager.cleanup()
+                        
                 except Exception as e:
-                    Logger(model=model).error(f"GUI command failed: {str(e)}")
+                    Logger(model=model).error(f"GUI initialization failed: {str(e)}")
+                    import traceback
+                    Logger(model=model).error(f"Traceback:\n{traceback.format_exc()}")
                     raise
 
-            asyncio.run(init_and_run_gui())
+            # Run with proper asyncio handling
+            try:
+                if os.name == 'nt':  # Windows
+                    # Use ProactorEventLoop on Windows
+                    loop = asyncio.ProactorEventLoop()
+                    asyncio.set_event_loop(loop)
+                else:
+                    loop = asyncio.get_event_loop()
+                    
+                loop.run_until_complete(init_and_run_gui())
+                
+            except KeyboardInterrupt:
+                Logger(model=model).info("GUI stopped by user")
+            except Exception as e:
+                Logger(model=model).error(f"GUI failed to start: {str(e)}")
+                raise
             
         elif subcommand == "aider":
             manager = AiderManager()

@@ -25,20 +25,30 @@ class GUIManager:
     async def start_gui(self):
         """Start the GUI application."""
         try:
+            self.logger.info("Starting KinOS GUI...")
+            
             # Create Qt application
             self.app = QApplication([])
+            self.logger.info("Created QApplication")
+            
             self.window = MainWindow(self)
+            self.logger.info("Created MainWindow")
+            
             self.window.show()
+            self.logger.info("Window shown")
             
             # Start event loop
             import qasync
             loop = qasync.QEventLoop(self.app)
             asyncio.set_event_loop(loop)
+            self.logger.info("Event loop created")
             
             # Run periodic updates
             self._start_update_timers()
+            self.logger.info("Started update timers")
             
             # Run event loop
+            self.logger.info("Starting event loop...")
             await loop.run_forever()
             
         except Exception as e:

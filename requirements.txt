@@ -15,3 +15,6 @@ psutil==5.9.6
 aider-chat>=0.14.0
 cairosvg>=2.7.1
 packaging>=21.3  # For version comparison
+PyQt6>=6.4.0
+qasync>=0.24.0
+pillow>=9.3.0

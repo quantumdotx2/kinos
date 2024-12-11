@@ -3,6 +3,7 @@ import logging
 import asyncio
 from dotenv import load_dotenv
 import os
+from managers.gui_manager import GUIManager
 
 # Load environment variables
 load_dotenv()
@@ -149,6 +150,15 @@ def main():
 
             # Run the async initialization and execution
             asyncio.run(init_and_run_agents())
+            
+        elif subcommand == "gui":
+            # Create and initialize GUI manager
+            try:
+                manager = GUIManager(model=model)
+                await manager.start_gui()
+            except Exception as e:
+                logger.error(f"GUI command failed: {str(e)}")
+                raise
             
         elif subcommand == "aider":
             manager = AiderManager()

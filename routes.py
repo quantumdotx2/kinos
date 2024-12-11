@@ -153,12 +153,15 @@ def main():
             
         elif subcommand == "gui":
             # Create and initialize GUI manager
-            try:
-                manager = GUIManager(model=model)
-                await manager.start_gui()
-            except Exception as e:
-                logger.error(f"GUI command failed: {str(e)}")
-                raise
+            async def init_and_run_gui():
+                try:
+                    manager = GUIManager(model=model)
+                    await manager.start_gui()
+                except Exception as e:
+                    Logger(model=model).error(f"GUI command failed: {str(e)}")
+                    raise
+
+            asyncio.run(init_and_run_gui())
             
         elif subcommand == "aider":
             manager = AiderManager()

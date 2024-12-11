@@ -1,7 +1,8 @@
 import os
 import asyncio
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                            QHBoxLayout, QLabel, QPushButton, QSlider, QScrollArea)
+                            QHBoxLayout, QLabel, QPushButton, QSlider, QScrollArea,
+                            QMessageBox, QTextEdit)
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QPixmap, QIcon
 from utils.logger import Logger
@@ -55,6 +56,12 @@ class GUIManager:
         self.diagram_timer = QTimer()
         self.diagram_timer.timeout.connect(self.window.update_diagram)
         self.diagram_timer.start(30000)
+        
+        # Update activity feeds every 2 seconds
+        self.activity_timer = QTimer()
+        self.activity_timer.timeout.connect(self.window._update_activity_feed)
+        self.activity_timer.timeout.connect(self.window._update_commit_history)
+        self.activity_timer.start(2000)
 
     def generate_agent_avatar(self, agent_name):
         """Generate a unique avatar for an agent."""
@@ -87,6 +94,56 @@ class GUIManager:
         except Exception as e:
             self.logger.error(f"Avatar generation failed: {str(e)}")
             return None
+
+class FileEditor(QWidget):
+    """File editor widget with syntax highlighting."""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.init_ui()
+        
+    def init_ui(self):
+        """Initialize the editor UI."""
+        layout = QVBoxLayout(self)
+        
+        # Add toolbar
+        toolbar = QHBoxLayout()
+        
+        # Save button
+        self.save_btn = QPushButton("Save")
+        self.save_btn.clicked.connect(self._save_file)
+        toolbar.addWidget(self.save_btn)
+        
+        # Cancel button
+        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn.clicked.connect(self.close)
+        toolbar.addWidget(self.cancel_btn)
+        
+        layout.addLayout(toolbar)
+        
+        # Add text editor
+        self.editor = QTextEdit()
+        layout.addWidget(self.editor)
+        
+    def load_file(self, filepath):
+        """Load file content into editor."""
+        self.current_file = filepath
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
+            self.editor.setPlainText(content)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Could not load file: {str(e)}")
+            
+    def _save_file(self):
+        """Save current content to file."""
+        try:
+            with open(self.current_file, 'w', encoding='utf-8') as f:
+                f.write(self.editor.toPlainText())
+            QMessageBox.information(self, "Success", "File saved successfully")
+            self.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Could not save file: {str(e)}")
 
 class MainWindow(QMainWindow):
     """Main window for the KinOS GUI."""
@@ -222,6 +279,59 @@ class MainWindow(QMainWindow):
             card_layout.addLayout(info_layout)
             self.agent_layout.addWidget(card)
             
+    def _update_activity_feed(self):
+        """Update the activity feed from suivi.md."""
+        try:
+            # Clear existing items
+            while self.suivi_layout.count():
+                child = self.suivi_layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
+                    
+            # Read last 10 lines from suivi.md
+            if os.path.exists('suivi.md'):
+                with open('suivi.md', 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    last_lines = lines[-10:] if len(lines) > 10 else lines
+                    
+                # Add each line as a label
+                for line in reversed(last_lines):
+                    label = QLabel(line.strip())
+                    label.setWordWrap(True)
+                    self.suivi_layout.addWidget(label)
+                    
+        except Exception as e:
+            self.manager.logger.error(f"Failed to update activity feed: {str(e)}")
+
+    def _update_commit_history(self):
+        """Update the commit history display."""
+        try:
+            # Clear existing items
+            while self.commit_layout.count():
+                child = self.commit_layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
+                    
+            # Get recent commits
+            import subprocess
+            result = subprocess.run(
+                ['git', 'log', '-5', '--pretty=format:%h - %s'],
+                capture_output=True,
+                text=True,
+                encoding='utf-8'
+            )
+            
+            if result.returncode == 0:
+                commits = result.stdout.split('\n')
+                for commit in commits:
+                    if commit.strip():
+                        label = QLabel(commit.strip())
+                        label.setWordWrap(True)
+                        self.commit_layout.addWidget(label)
+                    
+        except Exception as e:
+            self.manager.logger.error(f"Failed to update commit history: {str(e)}")
+
     def update_diagram(self):
         """Update the repository diagram display."""
         try:
@@ -238,13 +348,21 @@ class MainWindow(QMainWindow):
             
     def _edit_mission(self):
         """Open mission file for editing."""
-        # TODO: Implement file editor
-        pass
+        try:
+            editor = FileEditor()
+            editor.load_file('.aider.mission.md')
+            editor.show()
+        except Exception as e:
+            self.manager.logger.error(f"Could not open mission editor: {str(e)}")
         
     def _edit_todolist(self):
         """Open todolist file for editing."""
-        # TODO: Implement file editor
-        pass
+        try:
+            editor = FileEditor()
+            editor.load_file('todolist.md')
+            editor.show()
+        except Exception as e:
+            self.manager.logger.error(f"Could not open todolist editor: {str(e)}")
         
     def _toggle_agents(self):
         """Toggle agent execution."""
